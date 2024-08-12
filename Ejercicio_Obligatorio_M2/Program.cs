@@ -37,8 +37,8 @@ Requerimientos:
     internal class Program
     {
         //Record para guardar el dia y la temperatura que superan el umbral indicado
-        public record DiaUmbral(int dia, int temperatura);
-
+        public record DiaUmbral(int dia, string nombreDia, int temperatura);
+        
         #region funciones
         static void LimpiarPantalla()
         {
@@ -73,7 +73,7 @@ Requerimientos:
             }
         }
 
-        static void MostrarTemperaturasDiarias(int[,] temperaturasDiarias)
+        static void MostrarTemperaturasDiarias(int[,] temperaturasDiarias, string[] diasSemana)
         {
             int dia = 0;
             for (int i = 0; i < temperaturasDiarias.GetLength(0); i++)
@@ -85,13 +85,13 @@ Requerimientos:
                     if (dia == 32)
                         break;
                    
-                    Console.WriteLine($"\tDía {dia}. Temperatura: {temperaturasDiarias[i, j]} ºC");
+                    Console.WriteLine($"\t{diasSemana[j]} {dia}. Temperatura: {temperaturasDiarias[i, j]} ºC");
                 }
                 Console.WriteLine();
             }
         }      
 
-        static List<DiaUmbral> ObtenerTemperaturasEncimaUmbral(double temperaturaUmbral, int[,] temperaturasDiarias)
+        static List<DiaUmbral> ObtenerTemperaturasEncimaUmbral(double temperaturaUmbral, int[,] temperaturasDiarias, string[] diasSemana)
         {
             List<DiaUmbral> temperaturaEncimaUmbral = new List<DiaUmbral>();
             int dia = 0, temperatura;
@@ -106,7 +106,7 @@ Requerimientos:
                     temperatura = temperaturasDiarias[i, j];
                     if (temperatura > temperaturaUmbral)
                     {
-                        DiaUmbral diaUmbral = new DiaUmbral(dia, temperatura);
+                        DiaUmbral diaUmbral = new DiaUmbral(dia, diasSemana[j], temperatura);
                         temperaturaEncimaUmbral.Add(diaUmbral);
                     }                    
                 }
@@ -212,10 +212,11 @@ Requerimientos:
             return $"La temperatura máxima del mes fue {maxima} ºC.";
         }
 
-        static string obtenerTemperaturaDiaEspecifico(int dia, int[,] temperaturasDiarias)
+        static string obtenerTemperaturaDiaEspecifico(int dia, int[,] temperaturasDiarias, string[] diasSemana)
         {
             int diaActual = 0, temperatura = 0;
             string mensaje;
+            string diaNombre = "";
             for (int i = 0; i < temperaturasDiarias.GetLength(0); i++)
             {                
                 for (int j = 0; j < temperaturasDiarias.GetLength(1); j++)
@@ -224,7 +225,8 @@ Requerimientos:
 
                     if (diaActual == dia)
                     {
-                        temperatura = temperaturasDiarias[i, j];                        
+                        temperatura = temperaturasDiarias[i, j];
+                        diaNombre = diasSemana[j];
                         break;
                     }
 
@@ -233,7 +235,7 @@ Requerimientos:
                 }                
             }
 
-            mensaje = $"El día {dia} del mes, la temperatura fue {temperatura} ºC.";
+            mensaje = $"El {diaNombre} {dia} del mes, la temperatura fue {temperatura} ºC.";
             if (temperatura < 0)
                 return $"{mensaje} Hizo mucho frío.";
             
@@ -276,6 +278,7 @@ Requerimientos:
             int opcion;
             bool datosCargados = false;
             int[,] temperaturasDiarias = new int[5, 7]; //Arreglo de 5x7 para semanas y dias                        
+            string[] diasSemana = new string[]{ "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo" };
             List<double> temperaturaPromedioSemanal = new List<double>();
             List<DiaUmbral> temperaturaEncimaUmbral = new List<DiaUmbral>();
             double temperaturaUmbral = 20;
@@ -306,7 +309,7 @@ Requerimientos:
                 {
                     case 1:                        
                         SimularCargaTemperaturas(ref temperaturasDiarias);
-                        MostrarTemperaturasDiarias(temperaturasDiarias);
+                        MostrarTemperaturasDiarias(temperaturasDiarias, diasSemana);
                         datosCargados = true;
                         LimpiarPantalla();
                         break;
@@ -317,7 +320,7 @@ Requerimientos:
                             LimpiarPantalla();
                             continue;
                         }
-                        MostrarTemperaturasDiarias(temperaturasDiarias);
+                        MostrarTemperaturasDiarias(temperaturasDiarias, diasSemana);
                         LimpiarPantalla();                        
                         break;
                     case 3:
@@ -343,11 +346,11 @@ Requerimientos:
                             continue;
                         }
 
-                        temperaturaEncimaUmbral = ObtenerTemperaturasEncimaUmbral(temperaturaUmbral, temperaturasDiarias);
+                        temperaturaEncimaUmbral = ObtenerTemperaturasEncimaUmbral(temperaturaUmbral, temperaturasDiarias, diasSemana);
                         Console.WriteLine($"\n\nTemperaturas por encima de {temperaturaUmbral} ºC:");
                         foreach (DiaUmbral diaU in temperaturaEncimaUmbral)
                         {
-                            Console.WriteLine($"\tDía {diaU.dia}. Temperatura: {diaU.temperatura} ºC.");
+                            Console.WriteLine($"\t{diaU.nombreDia} {diaU.dia}. Temperatura: {diaU.temperatura} ºC.");
                         }
                         LimpiarPantalla();
                         break;
@@ -405,7 +408,7 @@ Requerimientos:
 
                         Random random = new Random();   //Para generar temperatura random
                         int diaRandom = (int)(1 + (random.NextDouble() * (31 - 1)));
-                        Console.WriteLine($"\n{obtenerTemperaturaDiaEspecifico(diaRandom, temperaturasDiarias)}");
+                        Console.WriteLine($"\n{obtenerTemperaturaDiaEspecifico(diaRandom, temperaturasDiarias, diasSemana)}");
                         LimpiarPantalla();
                         break;
                     case 10:
